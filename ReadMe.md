@@ -121,7 +121,7 @@ GET /api/v1/orders/{orderId}
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/poc-exchange-ob.git
+git clone https://github.com/sardarwaqasahmed/poc-exchange-ob.git
 cd poc-exchange-ob
 ```
 
