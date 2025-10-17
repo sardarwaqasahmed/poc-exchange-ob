@@ -12,7 +12,7 @@ This application handles **limit orders** (BUY/SELL) and executes trades based o
 - **Framework:** Spring Boot 3.4
 - **Build Tool:** Maven
 - **Testing:** JUnit 5, Mockito
-- **Logging:** SLF4J + Logback
+- **Logging:** SLF4J
 - **API Documentation:** Swagger/OpenAPI 3 (`springdoc-openapi`)
 - **Data Structures:** ConcurrentSkipListMap, Queue
 - **IDE:** IntelliJ IDEA (with built-in code coverage)
