@@ -7,4 +7,6 @@ public interface OrderBookService {
     OrderResponse placeOrder(OrderRequest orderRequest);
 
     OrderResponse getOrderById(long orderId);
+
+    OrderResponse cancelOrder(long orderId);
 }

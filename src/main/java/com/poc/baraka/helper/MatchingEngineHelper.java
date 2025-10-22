@@ -56,11 +56,11 @@ public class MatchingEngineHelper {
                         .build())
                 .build();
 
-
+        // Until there is pending amount and we have seller left
         while (buyOrder.getPendingAmount().compareTo(BigDecimal.ZERO) > 0 && !sellOrdersMap.isEmpty()) {
             BigDecimal bestAskPrice = sellOrdersMap.firstKey();
 
-            // Price not acceptable
+            // Price not acceptable, in case buyer want to buy at very low rate
             if (buyOrder.getPrice().compareTo(bestAskPrice) < 0) break;
 
             Queue<OrderDto> sellQueue = sellOrdersMap.get(bestAskPrice);
@@ -72,7 +72,8 @@ public class MatchingEngineHelper {
             OrderDto sellOrder = sellQueue.peek();
 
             BigDecimal tradedAmount = buyOrder.getPendingAmount().min(sellOrder.getPendingAmount());
-            if (tradedAmount.compareTo(BigDecimal.ZERO) == 0) break; // safety
+            // If no pending amount left then break
+            if (tradedAmount.compareTo(BigDecimal.ZERO) == 0) break;
 
             // Record trades
             response.getOrder().getTrades().add(TradeDto.builder()
@@ -95,6 +96,7 @@ public class MatchingEngineHelper {
             if (sellOrder.getPendingAmount().compareTo(BigDecimal.ZERO) == 0) {
                 sellQueue.poll();
             }
+            // Remove price level
             if (sellQueue.isEmpty()) {
                 sellOrdersMap.remove(bestAskPrice);
             }
@@ -117,11 +119,11 @@ public class MatchingEngineHelper {
         }
 
         OrderResponse response = OrderResponse.builder().order(sellOrder).build();
-
+        // Until there is pending amount and we have buyer left
         while (sellOrder.getPendingAmount().compareTo(BigDecimal.ZERO) > 0 && !buyOrdersMap.isEmpty()) {
             BigDecimal bestBidPrice = buyOrdersMap.firstKey();
 
-            // Price not acceptable
+            // Price not acceptable, in case seller want to sell at very high rate
             if (sellOrder.getPrice().compareTo(bestBidPrice) > 0) break;
 
             Queue<OrderDto> buyQueue = buyOrdersMap.get(bestBidPrice);
@@ -133,7 +135,7 @@ public class MatchingEngineHelper {
             OrderDto buyOrder = buyQueue.peek();
 
             BigDecimal tradedAmount = sellOrder.getPendingAmount().min(buyOrder.getPendingAmount());
-            if (tradedAmount.compareTo(BigDecimal.ZERO) == 0) break; // safety
+            if (tradedAmount.compareTo(BigDecimal.ZERO) == 0) break;
 
             // Record trades
             response.getOrder().getTrades().add(TradeDto.builder()
@@ -173,5 +175,47 @@ public class MatchingEngineHelper {
 
     public OrderResponse getOrderById(long orderId) {
         return allOrders.get(orderId);
+    }
+
+    public synchronized OrderResponse cancelOrder(long orderId) {
+        log.info("cancelOrder(..) called for id={}", orderId);
+        OrderResponse orderResponse = allOrders.get(orderId);
+        if (orderResponse == null) {
+            log.warn("Order id={} not found in allOrders", orderId);
+            orderResponse = new OrderResponse();
+            orderResponse.setCanceled(false);
+            return orderResponse;
+        }
+
+        OrderDto order = orderResponse.getOrder();
+        boolean removed = false;
+
+        if (OrderDirectionEnum.valueOf(order.getDirection().toUpperCase()) == OrderDirectionEnum.BUY) {
+            removed = removeFromQueue(buyOrdersMap, order);
+        } else {
+            removed = removeFromQueue(sellOrdersMap, order);
+        }
+
+        if (removed) {
+            // Update allOrders: mark as canceled or remove
+            order.setPendingAmount(BigDecimal.ZERO);
+            orderResponse.setCanceled(true);
+            log.info("Order id={} canceled successfully", orderId);
+        } else {
+            log.warn("Order id={} not found in order book queues", orderId);
+        }
+
+        return orderResponse;
+    }
+    private boolean removeFromQueue(NavigableMap<BigDecimal, Queue<OrderDto>> ordersMap, OrderDto order) {
+        Queue<OrderDto> queue = ordersMap.get(order.getPrice());
+        if (queue != null) {
+            boolean removed = queue.removeIf(o -> o.getId() == order.getId());
+            if (queue.isEmpty()) {
+                ordersMap.remove(order.getPrice());
+            }
+            return removed;
+        }
+        return false;
     }
 }

@@ -4,7 +4,9 @@ import com.poc.baraka.common.IdGenerator;
 import com.poc.baraka.dto.OrderDto;
 import com.poc.baraka.dto.OrderRequest;
 import com.poc.baraka.dto.OrderResponse;
+import com.poc.baraka.exception.NotFoundException;
 import com.poc.baraka.helper.MatchingEngineHelper;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -38,6 +40,17 @@ public class OrderBookServiceImpl implements OrderBookService {
     public OrderResponse getOrderById(long orderId) {
         log.info("getOrderById(...)");
         return matchingEngineHelper.getOrderById(orderId);
+    }
+
+    @Override
+    public OrderResponse cancelOrder(long orderId) {
+        OrderResponse orderResponse;
+        if(ObjectUtils.isNotEmpty(getOrderById(orderId))) {
+            orderResponse = matchingEngineHelper.cancelOrder(orderId);
+        } else {
+            throw new NotFoundException("");
+        }
+        return orderResponse;
     }
 
     private OrderDto mapToOrderDTO(OrderRequest orderRequest) {

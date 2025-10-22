@@ -107,11 +107,29 @@ GET /api/v1/orders/{orderId}
   }
 }
 ```
+## Cancel Order API
 
-**Response Example (Order Not Found):**
+**Request:**  
+`DELETE /api/v1/orders/{orderId}`
 
+**Example:**
+POST localhost:8080/api/v1/orders/0
+**Response:**
 ```json
-{}
+{
+  "order": {
+    "id": 0,
+    "timestamp": "2025-10-22T11:33:16.052260200Z",
+    "asset": "BTC",
+    "price": 100.00,
+    "amount": 10,
+    "direction": "SELL",
+    "pendingAmount": 0,
+    "trades": []
+  },
+  "canceled": true
+}
+
 ```
 
 ---

@@ -15,4 +15,5 @@ import lombok.experimental.FieldDefaults;
 public class OrderResponse {
 
     OrderDto order;
+    boolean canceled = false;
 }

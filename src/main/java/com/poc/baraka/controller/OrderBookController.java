@@ -47,6 +47,13 @@ public class OrderBookController {
         return new ResponseEntity<>(orderResponse, HttpStatus.CREATED);
     }
 
+    @DeleteMapping("/orders/{orderId}")
+    public ResponseEntity<OrderResponse> cancelOrder(@PathVariable long orderId) {
+        log.info("POST /cancel request received: {}", orderId);
+        OrderResponse orderResponse = orderBookService.cancelOrder(orderId);
+        return new ResponseEntity<>(orderResponse, HttpStatus.OK);
+    }
+
     @GetMapping("/orders/{orderId}")
     public ResponseEntity<OrderResponse> getOrder(@PathVariable long orderId) {
         log.info("Get /orders/1 request received: {}", orderId);
